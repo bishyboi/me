@@ -6,9 +6,10 @@
 		openState: Record<WinId, boolean>;
 		clock: string;
 		onToggle: (id: WinId) => void;
+		onCloseAll: () => void;
 	}
 
-	let { winOrder, openState, clock, onToggle }: Props = $props();
+	let { winOrder, openState, clock, onToggle, onCloseAll }: Props = $props();
 </script>
 
 <div class="taskbar">
@@ -20,6 +21,7 @@
 			onclick={() => onToggle(id)}
 		>{id}</button>
 	{/each}
+	<button class="taskbar-close-all" onclick={onCloseAll}>close all</button>
 	<span class="taskbar-clock">{clock}</span>
 </div>
 
@@ -64,6 +66,7 @@
 	}
 
 	.taskbar-item.open {
+        font-size: 20px;
 		opacity: 1;
 		color: var(--ink);
 	}
@@ -74,8 +77,29 @@
 		opacity: 1;
 	}
 
-	.taskbar-clock {
+	.taskbar-close-all {
 		margin-left: auto;
+		font-family: var(--mono);
+		font-size: 8px;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--ink-dim);
+		background: none;
+		border: 1px solid var(--border);
+		padding: 2px 7px;
+		cursor: pointer;
+		transition: all 0.1s;
+		border-radius: 2px;
+	}
+
+	.taskbar-close-all:hover {
+		background: var(--ink);
+		color: var(--paper);
+		border-color: var(--ink);
+	}
+
+	.taskbar-clock {
+		margin-left: 12px;
 		font-family: var(--mono);
 		font-size: 9px;
 		color: var(--ink-dim);

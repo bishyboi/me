@@ -9,15 +9,20 @@
 </script>
 
 <div class="about-name">bishoy pramanik</div>
-<div class="about-role">software engineer · researcher · builder</div>
+<div class="about-role">data scientist · software engineer · researcher · builder</div>
 <p class="about-bio">
-	Engineer and researcher working at the intersection of biomedical science and software. I build
-	tools that turn messy clinical data into insight — from ultrasound edge-detection pipelines to
-	ML-driven patient clustering — and ship the systems that make them usable.
+	I'm a computer science graduate from the University of Florida. 
+    I have a background in both biomedical science and computer science,
+    but I love to use my skills to bring my imagination to life. 
+    Human-Computer Interaction, data visualization, computational geometry, 
+    machine learning, and biomedical research are all fields I have experience in and enjoy working in. 
+    I have a passion for learning and building, and I'm always looking for new opportunities to grow and create.
+
 </p>
 <p class="about-bio">
-	Published first-author research at Mayo Clinic. Passionate about open-source science, interactive
-	software, and things that last.
+	I am a published first-author from my work at the Mayo Clinic.
+    I love learning about new cultures and have taught myself French (B2), and conversational Spanish (B1) and Arabic (A2).
+
 </p>
 <hr class="rule" />
 <div class="about-links">

@@ -11,8 +11,8 @@
 		<div class="pub-authors">{pub.authors}</div>
 	</div>
 {/each}
-<hr class="rule" />
-<div class="group-label" style="margin-bottom:0.6rem">areas</div>
+
+<div class="group-label" style="margin-bottom:0.6rem">research areas</div>
 <ul class="skill-list">
 	{#each researchAreas as area}
 		<li>{area}</li>

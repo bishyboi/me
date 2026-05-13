@@ -84,6 +84,7 @@
 <style>
 	.win {
 		position: absolute;
+		pointer-events: auto;
 		background: var(--paper);
 		border: 1px solid var(--border);
 		box-shadow: 2px 3px 12px rgba(60, 50, 40, 0.1);
@@ -140,7 +141,7 @@
 
 	.win-close {
 		font-family: var(--mono);
-		font-size: 16px;
+		font-size: 22px;
 		color: var(--ink-dim);
 		background: none;
 		border: none;

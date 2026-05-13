@@ -37,6 +37,7 @@
 	function closeWin(id: WinId) { wins[id].open = false; }
 	function toggleWin(id: WinId) { wins[id].open ? closeWin(id) : openWin(id); }
 	function moveWin(id: WinId, x: number, y: number) { wins[id].x = x; wins[id].y = y; }
+	function closeAll() { winOrder.forEach(id => { wins[id].open = false; }); }
 
 	function openState(): Record<WinId, boolean> {
 		return Object.fromEntries(winOrder.map(id => [id, wins[id].open])) as Record<WinId, boolean>;
@@ -154,14 +155,15 @@
 	</Window>
 </div>
 
-<Taskbar {winOrder} openState={openState()} {clock} onToggle={toggleWin} />
+<Taskbar {winOrder} openState={openState()} {clock} onToggle={toggleWin} onCloseAll={closeAll} />
 
 <style>
 	.desktop {
 		position: relative;
 		width: 100vw;
 		height: 100vh;
-		z-index: 1;
+		z-index: 20;
+		pointer-events: none;
 	}
 
 	@media (max-width: 768px) {

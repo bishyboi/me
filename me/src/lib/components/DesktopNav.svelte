@@ -12,17 +12,18 @@
 	let { winOrder, openState, isMobile, onOpen, onToggle }: Props = $props();
 </script>
 
+<div class="sidebar-bg"></div>
 <div class="desktop-icons">
 	<div class="index-header">index</div>
 	{#each winOrder as id}
 		<button
 			class="icon-btn"
 			class:active={openState[id]}
-			ondblclick={!isMobile ? () => onOpen(id) : undefined}
-			onclick={isMobile ? () => onToggle(id) : undefined}
+			onclick={() => onToggle(id)}
 		>{id}</button>
 	{/each}
 </div>
+<div class="v-rule"></div>
 
 <style>
 	.desktop-icons {
@@ -32,7 +33,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1px;
-		z-index: 10;
+		z-index: 5;
 	}
 
 	.index-header {
@@ -50,7 +51,7 @@
 		display: block;
 		font-family: var(--serif);
 		font-style: italic;
-		font-size: 13px;
+		font-size: 16px;
 		color: var(--ink-dim);
 		background: none;
 		border: none;
@@ -61,24 +62,32 @@
 		white-space: nowrap;
 	}
 
-	.icon-btn::before {
-		content: '◦ ';
-		font-style: normal;
-		font-family: var(--mono);
-		font-size: 10px;
-	}
-
-	.icon-btn.active::before {
-		content: '• ';
-		color: var(--ink);
-	}
-
 	.icon-btn:hover {
 		color: var(--ink);
 	}
 
 	.icon-btn.active {
 		color: var(--ink-muted);
+	}
+
+	.sidebar-bg {
+		position: fixed;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		width: 155px;
+		background: var(--bg);
+		z-index: 4;
+	}
+
+	.v-rule {
+		position: fixed;
+		top: 0;
+		bottom: 36px;
+		left: 155px;
+		width: 1px;
+		background: var(--border);
+		z-index: 5;
 	}
 
 	@media (max-width: 768px) {
@@ -110,13 +119,17 @@
 			padding: 4px 10px;
 		}
 
-		.icon-btn::before {
-			content: none;
-		}
-
 		.icon-btn.active {
 			color: var(--ink);
 			border-bottom: 2px solid var(--ink);
+		}
+
+		.sidebar-bg {
+			display: none;
+		}
+
+		.v-rule {
+			display: none;
 		}
 	}
 </style>
