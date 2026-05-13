@@ -234,7 +234,7 @@
 				}
 			] as p}
 				<div class="project-entry">
-					<div class="project-name">• {p.name}</div>
+					<div class="project-name">{p.name}</div>
 					<div class="project-stack">{p.stack}</div>
 					<div class="project-desc">{p.desc}</div>
 				</div>
