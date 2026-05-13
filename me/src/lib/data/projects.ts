@@ -3,7 +3,7 @@ import type { Project } from '$lib/types';
 export const projects: Project[] = [
 	{
 		id: 'mayo_autonomic_ml',
-		name: 'Autonomic Dysfunction Phenotyping — UMAP + Geodesic ML',
+		name: 'Understanding Autonomic Dysfunction Phenotyping: UMAP Topology + Geodesic ML',
 		stack: 'Python · UMAP · HDBSCAN · KMeans · TDA · scikit-learn · SciPy',
 		desc: 'UMAP + clustering pipeline on high-dimensional SCI clinical data. Identified SCI-dominant patient clusters correlated with autonomic dysfunction severity.',
 		category: 'Research / Data Science / Computational Geometry',
@@ -28,7 +28,7 @@ The pipeline: group-wise median imputation and z-score normalization → UMAP di
 	},
 	{
 		id: 'bwave_fmd_tool',
-		name: 'BWave.US — Open-Source FMD Assessment Tool',
+		name: 'BWave.US: An Open-Source FMD Assessment Tool',
 		stack: 'Python · OpenCV · SciPy · NumPy · pandas · signal processing',
 		desc: 'Open-source brachial ultrasound edge-detection pipeline for flow mediated dilation assessment. Improved automated vessel wall detection. Published at medRxiv.',
 		category: 'Research / Software',
@@ -102,7 +102,7 @@ The pipeline: group-wise median imputation and z-score normalization → UMAP di
 	},
 	{
 		id: 'eeg_motor_research',
-		name: 'EEG Functional Connectivity — Cooperative/Competitive Motor Tasks',
+		name: 'EEG Functional Connectivity: Cooperative/Competitive Motor Tasks',
 		stack: 'MATLAB · EEGLAB · SIFT · Bash · EEG · heart rate sensors · force sensors',
 		desc: 'Functional connectivity analysis of EEG data during cooperative and competitive motor tasks (table tennis) at UF\'s Human Neuromechanics Lab.',
 		category: 'Research / Data Science',
@@ -118,7 +118,7 @@ The pipeline: group-wise median imputation and z-score normalization → UMAP di
 	},
 	{
 		id: 'uf_team_formation_ml',
-		name: 'ML-Optimized Student Team Formation (UF Engineering)',
+		name: 'ML-Optimized Student Team Formation (UF Engineering Education Research)',
 		stack: 'Python · K-means clustering · pandas · survey data processing',
 		desc: 'Modified K-means clustering model to optimize student team assignments in UF engineering courses. Increased classroom satisfaction by 30%.',
 		category: 'Data Science / Software',
@@ -135,7 +135,7 @@ The pipeline: group-wise median imputation and z-score normalization → UMAP di
 	},
 	{
 		id: 'baldi_handwriting',
-		name: 'BALDI — Free-Space Handwriting Evaluation System',
+		name: 'BALDI: Free-Space Handwriting Evaluation System',
 		stack: 'Python · OpenCV · MediaPipe · TensorFlow · Keras · NiceGUI · FastAPI · DTW',
 		desc: 'Educational free-space handwriting evaluation system using pinch gesture or IR stylus tracking, DTW template matching, and CNN classification.',
 		category: 'Software / Computer Vision / Machine Learning',
@@ -158,7 +158,7 @@ The pipeline: group-wise median imputation and z-score normalization → UMAP di
 	},
 	{
 		id: 'ignite_spell_caster',
-		name: 'IGNITE — Interactive Magic Spell Caster',
+		name: 'IGNITE: Interactive Magic Spell Caster',
 		stack: 'Vanilla JS · TensorFlow.js · MediaPipe Hands · HTML5 Canvas · CSS3 · IndexedDB',
 		desc: 'Harry Potter-themed spell-casting browser app. Draw shapes in the air to trigger particle animations. Fully client-side with in-browser CNN training for custom spells.',
 		category: 'Software / Computer Vision / Machine Learning / Web',
@@ -215,7 +215,7 @@ The pipeline: group-wise median imputation and z-score normalization → UMAP di
 	},
 	{
 		id: 'openai_chatbot_hardware',
-		name: 'Julito-D2 — Embedded Voice-to-Voice AI Chatbot',
+		name: 'Julito-D2: Embedded Voice-to-Voice AI Chatbot',
 		stack: 'Python · OpenAI API · Raspberry Pi · TTS · audio hardware',
 		desc: 'Deployed the OpenAI API on a Raspberry Pi to create an interactive physical chatbot with real-time voice responses.',
 		category: 'Hardware / Software',
