@@ -10,6 +10,7 @@
 	import DesktopNav from '$lib/components/DesktopNav.svelte';
 	import Taskbar from '$lib/components/Taskbar.svelte';
 	import ProjectDetailWindow from '$lib/components/ProjectDetailWindow.svelte';
+	import SearchPalette from '$lib/components/SearchPalette.svelte';
 	import { projects } from '$lib/data/projects';
 
 	const winOrder: WinId[] = ['about', 'skills', 'projects', 'publications', 'contact'];
@@ -25,6 +26,7 @@
 	let zTop = $state(13);
 	let isMobile = $state(false);
 	let clock = $state('');
+	let searchOpen = $state(false);
 
 	let wins = $state<Record<WinId, WinState>>({
 		about:        { open: true,  z: 12, x: defaultPositions.about.x,        y: defaultPositions.about.y        },
@@ -43,6 +45,9 @@
 		winOrder.forEach(id => { wins[id].open = false; });
 		Object.keys(projectWins).forEach(id => { projectWins[id].open = false; });
 	}
+
+	function openSearch() { searchOpen = true; }
+	function closeSearch() { searchOpen = false; }
 
 	let ctxMenu = $state<{ visible: boolean; x: number; y: number; winId?: string }>({ visible: false, x: 0, y: 0 });
 
@@ -71,6 +76,8 @@
 
 	function ctxCloseAll() { closeAll(); hideCtx(); }
 
+	function ctxSearch() { hideCtx(); openSearch(); }
+
 	let projectWins = $state<Record<string, { open: boolean; z: number; x: number; y: number; projectId: string }>>({});
 
 	function openProjectWin(id: string) {
@@ -93,6 +100,19 @@
 
 	function openState(): Record<WinId, boolean> {
 		return Object.fromEntries(winOrder.map(id => [id, wins[id].open])) as Record<WinId, boolean>;
+	}
+
+	function onWindowKeydown(e: KeyboardEvent) {
+		if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+			e.preventDefault();
+			openSearch();
+		} else if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+			e.preventDefault();
+			openSearch();
+		} else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
+			e.preventDefault();
+			openSearch();
+		}
 	}
 
 	onMount(() => {
@@ -122,7 +142,7 @@
 	<title>bishoy pramanik</title>
 </svelte:head>
 
-<svelte:window onclick={hideCtx} />
+<svelte:window onclick={hideCtx} onkeydown={onWindowKeydown} />
 
 <DesktopNav
 	{winOrder}
@@ -133,6 +153,8 @@
 />
 
 <div class="desktop-bg" oncontextmenu={showDesktopCtx}></div>
+
+<button class="search-btn" onclick={openSearch} title="Search (Ctrl+K)" aria-label="Search">⌕</button>
 
 <div class="desktop">
 	<Window
@@ -248,8 +270,13 @@
 		{#if ctxMenu.winId}
 			<button class="ctx-item" onclick={ctxCloseWin}>close</button>
 		{/if}
+		<button class="ctx-item" onclick={ctxSearch}>search</button>
 		<button class="ctx-item" onclick={ctxCloseAll}>close all</button>
 	</div>
+{/if}
+
+{#if searchOpen}
+	<SearchPalette onOpen={openWin} onOpenProject={openProjectWin} onClose={closeSearch} />
 {/if}
 
 <Taskbar {winOrder} openState={openState()} {clock} onToggle={toggleWin} onCloseAll={closeAll} />
@@ -299,6 +326,36 @@
 	.ctx-item:hover {
 		background: var(--ink);
 		color: var(--paper);
+	}
+
+	.search-btn {
+		position: fixed;
+		top: 14px;
+		right: 18px;
+		z-index: 10;
+		background: none;
+		border: 1px solid var(--border);
+		border-radius: 2px;
+		color: var(--ink-dim);
+		font-size: 18px;
+		line-height: 1;
+		padding: 3px 7px 5px;
+		cursor: pointer;
+		transition: all 0.1s;
+	}
+
+	.search-btn:hover {
+		background: var(--ink);
+		color: var(--paper);
+		border-color: var(--ink);
+	}
+
+	@media (max-width: 768px) {
+		.search-btn {
+			top: 8px;
+			right: 12px;
+			z-index: 210;
+		}
 	}
 
 	@media (max-width: 768px) {

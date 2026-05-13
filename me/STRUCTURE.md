@@ -9,31 +9,35 @@ Personal portfolio site built with SvelteKit (Svelte 5 runes) and Tailwind CSS, 
 ```
 me/
 ├── src/
-│   ├── app.html                          # HTML entry point (Google Fonts: DM Serif Display, DM Mono)
-│   ├── app.d.ts                          # TypeScript global declarations
+│   ├── app.html                               # HTML entry point (Google Fonts: DM Serif Display, DM Mono)
+│   ├── app.d.ts                               # TypeScript global declarations
 │   ├── lib/
+│   │   ├── index.ts                           # Barrel re-exports
+│   │   ├── assets/
+│   │   │   └── favicon.svg                    # Favicon
 │   │   ├── types/
-│   │   │   └── index.ts                  # Shared types: WinId, WinState
+│   │   │   └── index.ts                       # Shared types: WinId, WinState, Project
 │   │   ├── data/
-│   │   │   ├── skills.ts                 # Skill groups array
-│   │   │   ├── projects.ts               # Projects array
-│   │   │   └── publications.ts           # Publications array + research areas
+│   │   │   ├── skills.ts                      # Skill groups array
+│   │   │   ├── projects.ts                    # Projects array (rich Project objects)
+│   │   │   └── publications.ts               # Publications array + research areas
 │   │   └── components/
-│   │       ├── Window.svelte             # Reusable draggable window frame
-│   │       ├── AboutWindow.svelte        # About window content
-│   │       ├── SkillsWindow.svelte       # Skills window content
-│   │       ├── ProjectsWindow.svelte     # Projects window content
-│   │       ├── PublicationsWindow.svelte # Publications window content
-│   │       ├── ContactWindow.svelte      # Contact window content
-│   │       ├── DesktopNav.svelte         # Left sidebar / mobile top nav
-│   │       └── Taskbar.svelte            # Bottom taskbar with clock
+│   │       ├── Window.svelte                  # Reusable draggable window frame
+│   │       ├── AboutWindow.svelte             # About window content
+│   │       ├── SkillsWindow.svelte            # Skills window content
+│   │       ├── ProjectsWindow.svelte          # Projects list; emits onOpenProject
+│   │       ├── ProjectDetailWindow.svelte     # Per-project detail view (dynamically spawned)
+│   │       ├── PublicationsWindow.svelte      # Publications window content
+│   │       ├── ContactWindow.svelte           # Contact window content
+│   │       ├── DesktopNav.svelte              # Left sidebar / mobile top nav
+│   │       └── Taskbar.svelte                 # Bottom taskbar with clock + close-all
 │   └── routes/
-│       ├── +layout.ts                    # Enables prerendering (SSG)
-│       ├── +layout.svelte                # Root layout (imports layout.css, favicon)
-│       ├── layout.css                    # Global styles: CSS vars, body, scrollbar, hr.rule
-│       └── +page.svelte                  # Page orchestrator: state, window logic, composition
-├── svelte.config.js                      # SvelteKit config (adapter-static)
-├── vite.config.ts                        # Vite config
+│       ├── +layout.ts                         # Enables prerendering (SSG)
+│       ├── +layout.svelte                     # Root layout (imports layout.css, favicon)
+│       ├── layout.css                         # Global styles: CSS vars, body, scrollbar, hr.rule
+│       └── +page.svelte                       # Page orchestrator: state, window logic, context menus
+├── svelte.config.js                           # SvelteKit config (adapter-static)
+├── vite.config.ts                             # Vite config
 ├── tsconfig.json
 └── package.json
 ```
@@ -45,10 +49,13 @@ me/
 ```
 +page.svelte  (state owner)
     │
-    ├── DesktopNav   ← reads openState[], calls onOpen / onToggle
-    ├── Taskbar      ← reads openState[], clock; calls onToggle
-    └── Window × 5  ← reads position/open/z; calls onClose, onFocus, onMove
-            └── *Window  ← pure content, no state (except About which calls onOpen)
+    ├── DesktopNav        ← reads openState[], calls onOpen / onToggle
+    ├── Taskbar           ← reads openState[], clock; calls onToggle, onCloseAll
+    ├── Window × 5        ← fixed windows; calls onClose, onFocus, onMove, onContextMenu
+    │       └── *Window   ← pure content (except About → onOpen, Projects → onOpenProject)
+    ├── Window × N        ← dynamic project detail windows (one per opened project)
+    │       └── ProjectDetailWindow  ← receives Project object as prop
+    └── ctx-menu div      ← context menu (right-click on window or desktop)
 ```
 
 ---
@@ -64,9 +71,23 @@ interface WinState {
   x: number;       // left position in pixels
   y: number;       // top position in pixels
 }
+
+interface Project {
+  id: string;
+  name: string;
+  stack: string;
+  desc: string;
+  category: string;
+  status: string;
+  date: string;
+  longDesc: string;
+  outcomes: string[];
+  links: { label: string; url: string }[];
+  images?: { src: string; caption?: string }[];
+}
 ```
 
-Used by: `+page.svelte`, `Window.svelte`, `DesktopNav.svelte`, `Taskbar.svelte`, `AboutWindow.svelte`.
+Used by: `+page.svelte`, `Window.svelte`, `DesktopNav.svelte`, `Taskbar.svelte`, `AboutWindow.svelte`, `ProjectDetailWindow.svelte`.
 
 ---
 
@@ -77,7 +98,7 @@ Plain TypeScript arrays — no logic, no imports. Edit these to update site cont
 | File | Export | Shape |
 |------|--------|-------|
 | `skills.ts` | `skillGroups` | `{ label: string; items: string[] }[]` |
-| `projects.ts` | `projects` | `{ name, stack, desc: string }[]` |
+| `projects.ts` | `projects` | `Project[]` (see types) |
 | `publications.ts` | `publications` | `{ title, url, venue, authors: string }[]` |
 | `publications.ts` | `researchAreas` | `string[]` |
 
@@ -93,7 +114,7 @@ The only component with interactive logic beyond what the page provides. Contain
 
 | Prop | Type | Description |
 |------|------|-------------|
-| `id` | `WinId` | Window identifier |
+| `id` | `string` | Window identifier (WinId or `project-{id}`) |
 | `open` | `boolean` | Controls visibility (opacity + pointer-events) |
 | `z` | `number` | CSS z-index |
 | `x` | `number` | Left position (px) |
@@ -101,8 +122,9 @@ The only component with interactive logic beyond what the page provides. Contain
 | `width` | `number` | Fixed width (px) |
 | `isMobile` | `boolean` | Disables drag when true |
 | `onClose` | `() => void` | Called when × is clicked |
-| `onFocus` | `() => void` | Called on mousedown (brings to front) |
+| `onFocus` | `() => void` | Called on pointerdown (brings to front) |
 | `onMove` | `(x, y) => void` | Called during drag with new position |
+| `onContextMenu` | `(e: MouseEvent) => void` | Called on right-click (for context menu) |
 | `children` | `Snippet` | Window body content (Svelte 5 snippet) |
 
 **Drag logic:** Attaches `mousedown` on the title bar, `mousemove`/`mouseup` on `document`. Reads `x`, `y`, `isMobile` from props reactively at event time — no stale closures. Cleans up listeners on `destroy`.
@@ -119,7 +141,8 @@ Purely presentational. Each renders its section's markup and owns its own scoped
 |-----------|-------------|-------------|
 | `AboutWindow` | Hardcoded | `onOpen: (id: WinId) => void` (for internal links to publications/contact) |
 | `SkillsWindow` | `data/skills.ts` | none |
-| `ProjectsWindow` | `data/projects.ts` | none |
+| `ProjectsWindow` | `data/projects.ts` | `onOpenProject: (id: string) => void` (spawns a detail window) |
+| `ProjectDetailWindow` | `data/projects.ts` (via prop) | `project: Project` |
 | `PublicationsWindow` | `data/publications.ts` | none |
 | `ContactWindow` | Hardcoded | none |
 
@@ -153,6 +176,7 @@ Renders one button per window and a live clock. Hidden on mobile (nav strip take
 | `openState` | `Record<WinId, boolean>` | Which windows are open (for `.open` styling) |
 | `clock` | `string` | Formatted time string (HH:MM) |
 | `onToggle` | `(id) => void` | Toggles a window |
+| `onCloseAll` | `() => void` | Closes all windows (including project detail windows) |
 
 ---
 
@@ -164,7 +188,9 @@ Owns all reactive state. Computes nothing about appearance — delegates everyth
 
 | Variable | Type | Description |
 |----------|------|-------------|
-| `wins` | `Record<WinId, WinState>` | Position, z-index, and open state for all windows |
+| `wins` | `Record<WinId, WinState>` | Position, z-index, and open state for all fixed windows |
+| `projectWins` | `Record<string, { open, z, x, y, projectId }>` | Dynamically spawned project detail windows |
+| `ctxMenu` | `{ visible, x, y, winId? }` | Context menu position and target |
 | `zTop` | `number` | Monotonically increasing z-index counter |
 | `isMobile` | `boolean` | True when viewport ≤768px |
 | `clock` | `string` | Current time, updated every second |
@@ -178,6 +204,14 @@ Owns all reactive state. Computes nothing about appearance — delegates everyth
 | `toggleWin(id)` | Calls open or close depending on current state |
 | `focusWin(id)` | Increments `zTop`, assigns to window's `z` |
 | `moveWin(id, x, y)` | Updates window position (called by drag) |
+| `closeAll()` | Closes all fixed and project detail windows |
+| `openProjectWin(id)` | Spawns or re-opens a project detail window |
+| `closeProjectWin(id)` | Closes a project detail window |
+| `focusProjectWin(id)` | Brings a project detail window to front |
+| `moveProjectWin(id, x, y)` | Updates project detail window position |
+| `showWinCtx(e, winId)` | Opens context menu targeting a specific window |
+| `showDesktopCtx(e)` | Opens context menu with no window target |
+| `hideCtx()` | Hides the context menu |
 | `openState()` | Returns `Record<WinId, boolean>` snapshot for nav/taskbar |
 
 **`onMount`:** Starts the clock interval, sets up a `matchMedia` listener for the 768px breakpoint, and opens all windows immediately if already on mobile.
@@ -210,11 +244,17 @@ Component-scoped styles live in their respective `.svelte` files.
 
 ## Adding a New Window
 
+**Fixed window (appears in nav/taskbar):**
 1. Add the new ID to `WinId` in `src/lib/types/index.ts`
 2. Add it to `winOrder` and `defaultPositions` in `+page.svelte`
-3. Add a zero state entry to `wins` in `+page.svelte`
+3. Add an entry to `wins` in `+page.svelte`
 4. Create `src/lib/components/YourWindow.svelte` with the content
 5. Add a `<Window id="your-id" ...>` block in `+page.svelte`
+
+**Dynamic detail window (spawned on demand, like project detail):**
+1. Add a state record in `+page.svelte` (similar to `projectWins`)
+2. Add open/close/focus/move handlers
+3. Render via `{#each}` over the state record in `+page.svelte`
 
 ---
 
