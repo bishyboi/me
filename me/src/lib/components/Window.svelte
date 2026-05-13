@@ -13,10 +13,11 @@
 		onClose: () => void;
 		onFocus: () => void;
 		onMove: (x: number, y: number) => void;
+		onContextMenu?: (e: MouseEvent) => void;
 		children: Snippet;
 	}
 
-	let { id, open, z, x, y, width, isMobile, onClose, onFocus, onMove, children }: Props = $props();
+	let { id, open, z, x, y, width, isMobile, onClose, onFocus, onMove, onContextMenu, children }: Props = $props();
 
 	function draggable(node: HTMLElement) {
 		const titlebar = node.querySelector('.win-title') as HTMLElement;
@@ -68,12 +69,10 @@
 	class:hidden={!open}
 	style="width:{width}px; left:{x}px; top:{y}px; z-index:{z}"
 	use:draggable
+	oncontextmenu={onContextMenu}
 >
 	<div class="win-title" data-win={id}>
-		<div class="win-title-inner">
-			<span class="win-tag">collection</span>
-			<span class="win-title-text">{id}</span>
-		</div>
+		<span class="win-title-text">{id}</span>
 		<button class="win-close" onclick={onClose}>×</button>
 	</div>
 	<div class="win-body">
@@ -117,20 +116,6 @@
 		cursor: grabbing;
 	}
 
-	.win-title-inner {
-		display: flex;
-		flex-direction: column;
-		gap: 1px;
-	}
-
-	.win-tag {
-		font-family: var(--mono);
-		font-size: 8px;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-		color: var(--ink-dim);
-	}
-
 	.win-title-text {
 		font-family: var(--serif);
 		font-size: 17px;
@@ -141,18 +126,22 @@
 
 	.win-close {
 		font-family: var(--mono);
-		font-size: 22px;
+		font-size: 11px;
+		letter-spacing: 0.08em;
 		color: var(--ink-dim);
 		background: none;
-		border: none;
+		border: 1px solid var(--border);
+		border-radius: 2px;
 		cursor: pointer;
-		transition: color 0.1s;
-		padding: 0 2px;
-		line-height: 1;
+		transition: all 0.1s;
+		padding: 2px 5px;
+		line-height: 1.4;
 	}
 
 	.win-close:hover {
-		color: var(--ink);
+		background: var(--ink);
+		color: var(--paper);
+		border-color: var(--ink);
 	}
 
 	.win-body {

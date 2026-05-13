@@ -148,7 +148,7 @@ DESCRIPTION  : Analyzed RNA-sequencing data from 55 patients (29K+ genes) to inv
 OUTCOMES     : - Achieved ~83% AUC via cross-validated classification
                - Built reproducible R workflows with GitHub version control
                - Applied PCA and UMAP for cluster visualization of high-dimensional gene expression data
-LINK         : https://github.com/rqian239/bioinformatics-project
+LINK         : https://github.com/rqian239/bioinformatics-project | Report: https://docs.google.com/document/d/1H_WzE0txwWHN8vnuQCHgzM5h3a34JmQzCmN43IuIMxg/edit?tab=t.0#heading=h.n20rhmonrfx6 
 ```
 
 ---
