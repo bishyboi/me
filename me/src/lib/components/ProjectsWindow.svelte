@@ -1,24 +1,41 @@
 <script lang="ts">
 	import { projects } from '$lib/data/projects';
+
+	let { onOpenProject }: { onOpenProject: (id: string) => void } = $props();
 </script>
 
 {#each projects as p}
-	<div class="project-entry">
-		<div class="project-name">{p.name}</div>
+	<button class="project-entry" onclick={() => onOpenProject(p.id)}>
+		<div class="project-name">{p.name} <span class="open-hint">↗</span></div>
 		<div class="project-stack">{p.stack}</div>
 		<div class="project-desc">{p.desc}</div>
-	</div>
+	</button>
 {/each}
-<div class="placeholder">— more to come</div>
 
 <style>
 	.project-entry {
-		padding: 0.85rem 0;
+		display: block;
+		width: 100%;
+		text-align: left;
+		background: none;
+		border: none;
 		border-bottom: 1px solid var(--rule);
+		padding: 0.85rem 0;
+		cursor: pointer;
+		transition: background 0.1s;
+		border-radius: 3px;
 	}
 
 	.project-entry:last-of-type {
 		border-bottom: none;
+	}
+
+	.project-entry:hover {
+		background: color-mix(in srgb, var(--ink) 4%, transparent);
+	}
+
+	.project-entry:hover .open-hint {
+		opacity: 1;
 	}
 
 	.project-name {
@@ -27,6 +44,14 @@
 		color: var(--ink);
 		line-height: 1.3;
 		margin-bottom: 3px;
+	}
+
+	.open-hint {
+		font-style: normal;
+		font-size: 0.75rem;
+		opacity: 0;
+		transition: opacity 0.1s;
+		color: var(--ink-dim);
 	}
 
 	.project-stack {
@@ -41,13 +66,5 @@
 		font-size: 12px;
 		color: var(--ink-muted);
 		line-height: 1.7;
-	}
-
-	.placeholder {
-		font-family: var(--mono);
-		font-size: 10px;
-		letter-spacing: 0.06em;
-		color: var(--ink-dim);
-		padding: 0.75rem 0 0;
 	}
 </style>

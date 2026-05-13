@@ -9,6 +9,8 @@
 	import ContactWindow from '$lib/components/ContactWindow.svelte';
 	import DesktopNav from '$lib/components/DesktopNav.svelte';
 	import Taskbar from '$lib/components/Taskbar.svelte';
+	import ProjectDetailWindow from '$lib/components/ProjectDetailWindow.svelte';
+	import { projects } from '$lib/data/projects';
 
 	const winOrder: WinId[] = ['about', 'skills', 'projects', 'publications', 'contact'];
 
@@ -20,16 +22,16 @@
 		contact:      { x: 720, y: 180, w: 300 }
 	};
 
-	let zTop = $state(10);
+	let zTop = $state(13);
 	let isMobile = $state(false);
 	let clock = $state('');
 
 	let wins = $state<Record<WinId, WinState>>({
-		about:        { open: false, z: 10, x: defaultPositions.about.x,        y: defaultPositions.about.y        },
-		skills:       { open: false, z: 10, x: defaultPositions.skills.x,       y: defaultPositions.skills.y       },
+		about:        { open: true,  z: 12, x: defaultPositions.about.x,        y: defaultPositions.about.y        },
+		skills:       { open: true,  z: 11, x: defaultPositions.skills.x,       y: defaultPositions.skills.y       },
 		projects:     { open: false, z: 10, x: defaultPositions.projects.x,     y: defaultPositions.projects.y     },
 		publications: { open: false, z: 10, x: defaultPositions.publications.x, y: defaultPositions.publications.y },
-		contact:      { open: false, z: 10, x: defaultPositions.contact.x,      y: defaultPositions.contact.y      }
+		contact:      { open: true,  z: 13, x: defaultPositions.contact.x,      y: defaultPositions.contact.y      }
 	});
 
 	function focusWin(id: WinId) { wins[id].z = ++zTop; }
@@ -37,7 +39,57 @@
 	function closeWin(id: WinId) { wins[id].open = false; }
 	function toggleWin(id: WinId) { wins[id].open ? closeWin(id) : openWin(id); }
 	function moveWin(id: WinId, x: number, y: number) { wins[id].x = x; wins[id].y = y; }
-	function closeAll() { winOrder.forEach(id => { wins[id].open = false; }); }
+	function closeAll() {
+		winOrder.forEach(id => { wins[id].open = false; });
+		Object.keys(projectWins).forEach(id => { projectWins[id].open = false; });
+	}
+
+	let ctxMenu = $state<{ visible: boolean; x: number; y: number; winId?: string }>({ visible: false, x: 0, y: 0 });
+
+	function showWinCtx(e: MouseEvent, winId: string) {
+		e.preventDefault();
+		e.stopPropagation();
+		ctxMenu = { visible: true, x: e.clientX, y: e.clientY, winId };
+	}
+
+	function showDesktopCtx(e: MouseEvent) {
+		e.preventDefault();
+		ctxMenu = { visible: true, x: e.clientX, y: e.clientY };
+	}
+
+	function hideCtx() { ctxMenu.visible = false; }
+
+	function ctxCloseWin() {
+		if (!ctxMenu.winId) return;
+		if ((winOrder as string[]).includes(ctxMenu.winId)) {
+			closeWin(ctxMenu.winId as WinId);
+		} else {
+			closeProjectWin(ctxMenu.winId);
+		}
+		hideCtx();
+	}
+
+	function ctxCloseAll() { closeAll(); hideCtx(); }
+
+	let projectWins = $state<Record<string, { open: boolean; z: number; x: number; y: number; projectId: string }>>({});
+
+	function openProjectWin(id: string) {
+		if (projectWins[id]) {
+			projectWins[id].open = true;
+			projectWins[id].z = ++zTop;
+		} else {
+			projectWins[id] = {
+				open: true,
+				z: ++zTop,
+				x: defaultPositions.projects.x + 40,
+				y: defaultPositions.projects.y + 40,
+				projectId: id
+			};
+		}
+	}
+	function closeProjectWin(id: string) { projectWins[id].open = false; }
+	function focusProjectWin(id: string) { projectWins[id].z = ++zTop; }
+	function moveProjectWin(id: string, x: number, y: number) { projectWins[id].x = x; projectWins[id].y = y; }
 
 	function openState(): Record<WinId, boolean> {
 		return Object.fromEntries(winOrder.map(id => [id, wins[id].open])) as Record<WinId, boolean>;
@@ -70,6 +122,8 @@
 	<title>bishoy pramanik</title>
 </svelte:head>
 
+<svelte:window onclick={hideCtx} />
+
 <DesktopNav
 	{winOrder}
 	openState={openState()}
@@ -77,6 +131,8 @@
 	onOpen={openWin}
 	onToggle={toggleWin}
 />
+
+<div class="desktop-bg" oncontextmenu={showDesktopCtx}></div>
 
 <div class="desktop">
 	<Window
@@ -90,6 +146,7 @@
 		onClose={() => closeWin('about')}
 		onFocus={() => focusWin('about')}
 		onMove={(x, y) => moveWin('about', x, y)}
+		onContextMenu={(e) => showWinCtx(e, 'about')}
 	>
 		<AboutWindow onOpen={openWin} />
 	</Window>
@@ -105,6 +162,7 @@
 		onClose={() => closeWin('skills')}
 		onFocus={() => focusWin('skills')}
 		onMove={(x, y) => moveWin('skills', x, y)}
+		onContextMenu={(e) => showWinCtx(e, 'skills')}
 	>
 		<SkillsWindow />
 	</Window>
@@ -120,8 +178,9 @@
 		onClose={() => closeWin('projects')}
 		onFocus={() => focusWin('projects')}
 		onMove={(x, y) => moveWin('projects', x, y)}
+		onContextMenu={(e) => showWinCtx(e, 'projects')}
 	>
-		<ProjectsWindow />
+		<ProjectsWindow onOpenProject={openProjectWin} />
 	</Window>
 
 	<Window
@@ -135,6 +194,7 @@
 		onClose={() => closeWin('publications')}
 		onFocus={() => focusWin('publications')}
 		onMove={(x, y) => moveWin('publications', x, y)}
+		onContextMenu={(e) => showWinCtx(e, 'publications')}
 	>
 		<PublicationsWindow />
 	</Window>
@@ -150,20 +210,95 @@
 		onClose={() => closeWin('contact')}
 		onFocus={() => focusWin('contact')}
 		onMove={(x, y) => moveWin('contact', x, y)}
+		onContextMenu={(e) => showWinCtx(e, 'contact')}
 	>
 		<ContactWindow />
 	</Window>
+
+	{#each Object.values(projectWins) as pw (pw.projectId)}
+		{#if pw.open}
+			{@const project = projects.find(p => p.id === pw.projectId)}
+			{#if project}
+				<Window
+					id={`project-${pw.projectId}`}
+					open={pw.open}
+					z={pw.z}
+					x={pw.x}
+					y={pw.y}
+					width={580}
+					{isMobile}
+					onClose={() => closeProjectWin(pw.projectId)}
+					onFocus={() => focusProjectWin(pw.projectId)}
+					onMove={(x, y) => moveProjectWin(pw.projectId, x, y)}
+					onContextMenu={(e) => showWinCtx(e, pw.projectId)}
+				>
+					<ProjectDetailWindow {project} />
+				</Window>
+			{/if}
+		{/if}
+	{/each}
 </div>
+
+{#if ctxMenu.visible}
+	<div
+		class="ctx-menu"
+		style="left:{ctxMenu.x}px; top:{ctxMenu.y}px"
+		onclick={(e) => e.stopPropagation()}
+	>
+		{#if ctxMenu.winId}
+			<button class="ctx-item" onclick={ctxCloseWin}>close</button>
+		{/if}
+		<button class="ctx-item" onclick={ctxCloseAll}>close all</button>
+	</div>
+{/if}
 
 <Taskbar {winOrder} openState={openState()} {clock} onToggle={toggleWin} onCloseAll={closeAll} />
 
 <style>
+	.desktop-bg {
+		position: fixed;
+		inset: 0 0 36px 0;
+		z-index: 9;
+	}
+
 	.desktop {
 		position: relative;
 		width: 100vw;
 		height: 100vh;
 		z-index: 20;
 		pointer-events: none;
+	}
+
+	.ctx-menu {
+		position: fixed;
+		z-index: 999;
+		background: var(--paper);
+		border: 1px solid var(--border);
+		box-shadow: 2px 3px 10px rgba(60, 50, 40, 0.12);
+		border-radius: 2px;
+		display: flex;
+		flex-direction: column;
+		min-width: 110px;
+		padding: 3px 0;
+	}
+
+	.ctx-item {
+		font-family: var(--mono);
+		font-size: 9px;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--ink-dim);
+		background: none;
+		border: none;
+		padding: 6px 14px;
+		cursor: pointer;
+		text-align: left;
+		transition: all 0.1s;
+	}
+
+	.ctx-item:hover {
+		background: var(--ink);
+		color: var(--paper);
 	}
 
 	@media (max-width: 768px) {
