@@ -18,7 +18,10 @@
 		contact:  { x: 720, y: 180, w: 300 }
 	};
 
+	const winOrder: WinId[] = ['about', 'skills', 'projects', 'publications', 'contact'];
+
 	let zTop = $state(10);
+	let isMobile = $state(false);
 
 	let wins = $state<Record<WinId, WinState>>({
 		about:    { open: false, z: 10, x: defaultPositions.about.x,    y: defaultPositions.about.y    },
@@ -53,6 +56,7 @@
 
 		function onMousedown(e: MouseEvent) {
 			if ((e.target as HTMLElement).classList.contains('win-close')) return;
+			if (isMobile) return;
 			dragging = true;
 			ox = e.clientX - wins[id].x;
 			oy = e.clientY - wins[id].y;
@@ -93,7 +97,25 @@
 	onMount(() => {
 		tick();
 		const interval = setInterval(tick, 1000);
-		return () => clearInterval(interval);
+
+		const mq = window.matchMedia('(max-width: 768px)');
+		isMobile = mq.matches;
+		if (isMobile) {
+			winOrder.forEach(id => { wins[id].open = true; });
+		}
+
+		const onChange = (e: MediaQueryListEvent) => {
+			isMobile = e.matches;
+			if (isMobile) {
+				winOrder.forEach(id => { wins[id].open = true; });
+			}
+		};
+		mq.addEventListener('change', onChange);
+
+		return () => {
+			clearInterval(interval);
+			mq.removeEventListener('change', onChange);
+		};
 	});
 </script>
 
@@ -101,11 +123,16 @@
 	<title>bishoy pramanik</title>
 </svelte:head>
 
-<!-- left rail: bullet journal index -->
+<!-- left rail: bullet journal index / mobile top nav -->
 <div class="desktop-icons">
 	<div class="index-header">index</div>
-	{#each (['about','skills','projects','publications','contact'] as WinId[]) as id}
-		<button class="icon-btn" class:active={wins[id].open} ondblclick={() => openWin(id)}>{id}</button>
+	{#each winOrder as id}
+		<button
+			class="icon-btn"
+			class:active={wins[id].open}
+			ondblclick={!isMobile ? () => openWin(id) : undefined}
+			onclick={isMobile ? () => toggleWin(id) : undefined}
+		>{id}</button>
 	{/each}
 </div>
 
@@ -135,7 +162,7 @@
 				pipelines to ML-driven patient clustering — and ship the systems that make them usable.
 			</p>
 			<p class="about-bio">
-				Published first-author research at Mayo Clinic. Based in Rochester, MN.
+				Published first-author research at Mayo Clinic.
 				Passionate about open-source science, interactive software, and things that last.
 			</p>
 			<hr class="rule" />
@@ -317,7 +344,7 @@
 <!-- taskbar: journal footer strip -->
 <div class="taskbar">
 	<span class="taskbar-label">open</span>
-	{#each (['about','skills','projects','publications','contact'] as WinId[]) as id}
+	{#each winOrder as id}
 		<button
 			class="taskbar-item"
 			class:open={wins[id].open}
@@ -487,7 +514,6 @@
 		font-size: 14px;
 		line-height: 1.9;
 		color: var(--ink);
-		/* keep text on top of ruled lines */
 		position: relative;
 	}
 
@@ -692,5 +718,103 @@
 		font-size: 9px;
 		color: var(--ink-dim);
 		letter-spacing: 0.08em;
+	}
+
+	/* ── MOBILE ── */
+	@media (max-width: 768px) {
+		:global(body) {
+			overflow: auto;
+			user-select: text;
+		}
+
+		/* horizontal sticky nav strip */
+		.desktop-icons {
+			position: sticky;
+			top: 0;
+			left: 0;
+			width: 100%;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 0;
+			padding: 8px 16px;
+			background: var(--paper);
+			border-bottom: 1px solid var(--border);
+			z-index: 200;
+		}
+
+		.index-header {
+			margin-bottom: 0;
+			margin-right: 10px;
+			padding: 0 10px 0 0;
+			border-bottom: none;
+			border-right: 1px solid var(--border);
+		}
+
+		.icon-btn {
+			font-size: 14px;
+			padding: 4px 10px;
+		}
+
+		/* remove bullets in horizontal layout */
+		.icon-btn::before { content: none; }
+
+		/* active underline instead of bullet */
+		.icon-btn.active {
+			color: var(--ink);
+			border-bottom: 2px solid var(--ink);
+		}
+
+		/* desktop becomes scrollable column of cards */
+		.desktop {
+			position: static;
+			width: 100%;
+			height: auto;
+			display: flex;
+			flex-direction: column;
+			gap: 16px;
+			padding: 16px;
+			padding-bottom: 24px;
+		}
+
+		/* windows become static stacked cards */
+		.win {
+			position: static !important;
+			width: 100% !important;
+			max-width: 100% !important;
+			min-width: 0;
+			box-shadow: 1px 2px 8px rgba(60,50,40,0.08);
+		}
+
+		/* hidden windows disappear entirely; unhide via nav tap */
+		.win.hidden {
+			display: none;
+			opacity: 1;
+			transform: none;
+			pointer-events: auto;
+		}
+
+		/* no grab cursor in card mode */
+		.win-title {
+			cursor: default;
+		}
+		.win-title:active { cursor: default; }
+
+		/* let body height control scrolling, not the window */
+		.win-body {
+			max-height: none;
+			overflow-y: visible;
+		}
+
+		/* hide taskbar — nav strip replaces it */
+		.taskbar {
+			display: none;
+		}
+
+		/* slightly larger touch targets for contact links */
+		.contact-val {
+			font-size: 12px;
+			word-break: break-all;
+		}
 	}
 </style>
