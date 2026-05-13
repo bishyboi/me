@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<!-- saved from url=(0049)file:///C:/Users/bisho/Downloads/portfolio_1.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bishoy pramanik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link href="./sample_files/css2" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #000000;
+    --border: #2a2a2a;
+    --border-mid: #444444;
+    --text: #ffffff;
+    --text-muted: #aaaaaa;
+    --text-dim: #666666;
+    --serif: 'DM Serif Display', Georgia, serif;
+    --mono: 'DM Mono', 'Courier New', monospace;
+  }
+
+  body {
+    font-family: var(--serif);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* infobox — mirrors layout.svelte exactly, colors swapped (white box, black text) */
+  .infobox {
+    position: fixed;
+    top: 7%;
+    right: 5%;
+    z-index: 200;
+    background: #ffffff;
+    color: #000000;
+    padding: 1rem;
+    font-size: 1.2rem;
+    font-family: var(--serif);
+    font-style: italic;
+    max-width: 260px;
+    line-height: 1.35;
+    pointer-events: auto;
+  }
+
+  .infobox a { color: #000000; text-decoration: none; }
+  .infobox a:hover { text-decoration: underline; }
+
+  /* desktop icons — left rail */
+  .desktop-icons {
+    position: fixed;
+    top: 16px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 10;
+  }
+
+  .icon-btn {
+    display: block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    background: none;
+    border: none;
+    padding: 3px 6px;
+    cursor: pointer;
+    text-align: left;
+    letter-spacing: 0.04em;
+    transition: color 0.1s;
+    white-space: nowrap;
+  }
+
+  .icon-btn::before { content: '> '; color: var(--border-mid); }
+  .icon-btn:hover { color: var(--text); }
+  .icon-btn:hover::before { color: var(--text); }
+
+  /* desktop */
+  .desktop {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+  }
+
+  /* windows */
+  .win {
+    position: absolute;
+    background: var(--bg);
+    border: 1px solid #ffffff;
+    min-width: 300px;
+    max-width: min(640px, calc(100vw - 80px));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: opacity 0.15s, transform 0.15s;
+  }
+
+  .win.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.98);
+  }
+
+  /* titlebar — white bar, black text (the infobox colour, reversed for window chrome) */
+  .win-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 5px 12px;
+    background: #ffffff;
+    cursor: grab;
+    flex-shrink: 0;
+  }
+
+  .win-title:active { cursor: grabbing; }
+
+  .win-title-text {
+    font-family: var(--serif);
+    font-size: 13px;
+    font-style: italic;
+    color: #000000;
+  }
+
+  .win-close {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #000000;
+    background: none;
+    border: none;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.1s;
+    padding: 0 2px;
+  }
+  .win-close:hover { opacity: 1; }
+
+  /* window body — max-width 55% of viewport, matching layout.svelte's .main */
+  .win-body {
+    padding: 1.5rem 2rem;
+    overflow-y: auto;
+    flex: 1;
+    max-height: calc(100vh - 100px);
+    font-family: var(--serif);
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--text);
+  }
+
+  ::-webkit-scrollbar { width: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-mid); }
+
+  /* section rule */
+  hr.rule {
+    border: none;
+    border-top: 1px solid var(--border-mid);
+    margin: 1.25rem 0;
+  }
+
+  /* link hover pattern from page.svelte — invert bg on hover */
+  a { text-decoration: none; }
+  a:hover { text-decoration: none; }
+
+  /* ── ABOUT ── */
+  #win-about { width: 500px; top: 70px; left: 90px; }
+
+  .about-name {
+    font-size: 2.8rem;
+    font-family: var(--serif);
+    line-height: 1.05;
+    margin-bottom: 0.2em;
+    letter-spacing: -0.01em;
+  }
+
+  .about-role {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+
+  .about-bio {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 0.9rem;
+  }
+
+  .about-links { display: flex; flex-wrap: wrap; gap: 0; margin-top: 0.25rem; }
+
+  .about-link {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 1px 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: background 0.1s, color 0.1s;
+  }
+  .about-link:first-child { padding-left: 0; }
+  .about-link:hover { background: #ffffff; color: #000000; }
+
+  /* ── SKILLS ── */
+  #win-skills { width: 380px; top: 70px; left: 630px; }
+
+  .group-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  /* comma-separated flowing text list — like a journal enumeration */
+  .skill-list {
+    list-style: none;
+    font-family: var(--serif);
+    font-size: 14px;
+    color: var(--text-muted);
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .skill-list li:not(:last-child)::after { content: ', '; white-space: pre; }
+  .skill-list li:hover { color: var(--text); cursor: default; }
+
+  /* ── PROJECTS ── */
+  #win-projects { width: 540px; top: 400px; left: 90px; }
+
+  .project-entry {
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .project-entry:last-of-type { border-bottom: none; }
+
+  .project-name {
+    font-size: 1.05rem;
+    color: var(--text);
+    line-height: 1.3;
+    margin-bottom: 2px;
+  }
+
+  .project-stack {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.07em;
+    margin-bottom: 5px;
+  }
+
+  .project-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.65;
+  }
+
+  /* ── RESEARCH ── */
+  #win-research { width: 500px; top: 400px; left: 670px; }
+
+  .pub-entry {
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .pub-entry:last-of-type { border-bottom: none; }
+
+  .pub-title { font-size: 1rem; line-height: 1.45; color: var(--text); margin-bottom: 4px; }
+  .pub-venue { font-family: var(--mono); font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; margin-bottom: 3px; }
+  .pub-authors { font-size: 12px; color: var(--text-dim); font-style: italic; }
+
+  /* ── BLOG ── */
+  #win-blog { width: 420px; top: 100px; left: 340px; }
+
+  .blog-h1 {
+    font-size: 2rem;
+    font-family: var(--serif);
+    margin-bottom: 0.75rem;
+    line-height: 1.1;
+  }
+
+  .post-entry { padding: 1em 0; }
+
+  .post-entry h2 {
+    font-size: 1.05rem;
+    font-weight: normal;
+    line-height: 1.3;
+    margin-bottom: 3px;
+  }
+
+  .post-entry h2 a { color: var(--text); text-decoration: none; }
+  .post-entry h2 a:hover { background: #ffffff; color: #000000; }
+
+  .post-meta { font-family: var(--mono); font-size: 10px; color: var(--text-dim); margin-top: 3px; }
+  .post-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; line-height: 1.6; }
+
+  .win-body hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+    height: 1px;
+  }
+
+  /* ── CONTACT ── */
+  #win-contact { width: 300px; top: 190px; left: 770px; }
+
+  .contact-row {
+    display: flex;
+    gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--border);
+    align-items: baseline;
+  }
+  .contact-row:last-child { border-bottom: none; }
+
+  .contact-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    min-width: 56px;
+    flex-shrink: 0;
+  }
+
+  .contact-val {
+    font-family: var(--serif);
+    font-size: 13px;
+    color: var(--text-muted);
+    font-style: italic;
+    text-decoration: none;
+  }
+  .contact-val:hover { background: #ffffff; color: #000000; }
+
+  /* placeholder */
+  .placeholder {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 13px;
+    color: var(--text-dim);
+    padding: 0.75rem 0;
+  }
+
+  /* ── TASKBAR — white bar, italic serif, matching infobox language ── */
+  .taskbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 34px;
+    background: #ffffff;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+  }
+
+  .taskbar-item {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 14px;
+    color: #000000;
+    background: none;
+    border: none;
+    padding: 3px 10px;
+    cursor: pointer;
+    opacity: 0.35;
+    transition: all 0.1s;
+    line-height: 1;
+  }
+  .taskbar-item:first-child { padding-left: 0; }
+  .taskbar-item.open { opacity: 1; }
+  .taskbar-item:hover { background: #000000; color: #ffffff; opacity: 1; }
+
+  .taskbar-clock {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: #000000;
+    opacity: 0.4;
+  }
+</style>
+</head>
+<body>
+
+<!-- infobox: top-right, white box, black italic text — mirrors layout.svelte -->
+<div class="infobox">
+  <a href="file:///C:/Users/bisho/Downloads/portfolio_1.html#">hi this is my portfolio and these are my thoughts</a>
+</div>
+
+<!-- left rail: tiny monospace links -->
+<div class="desktop-icons">
+  <button class="icon-btn" ondblclick="openWin(&#39;win-about&#39;)">about</button>
+  <button class="icon-btn" ondblclick="openWin(&#39;win-skills&#39;)">skills</button>
+  <button class="icon-btn" ondblclick="openWin(&#39;win-projects&#39;)">projects</button>
+  <button class="icon-btn" ondblclick="openWin(&#39;win-research&#39;)">research</button>
+  <button class="icon-btn" ondblclick="openWin(&#39;win-blog&#39;)">blog</button>
+  <button class="icon-btn" ondblclick="openWin(&#39;win-contact&#39;)">contact</button>
+</div>
+
+<div class="desktop" id="desktop">
+
+  <!-- ABOUT -->
+  <div class="win focused hidden" id="win-about" style="z-index: 28; left: 162px; top: 39px;">
+    <div class="win-title" data-win="win-about">
+      <span class="win-title-text">about</span>
+      <button class="win-close" onclick="closeWin(&#39;win-about&#39;)">[x]</button>
+    </div>
+    <div class="win-body">
+      <div class="about-name">bishoy pramanik</div>
+      <div class="about-role">software engineer · researcher · builder</div>
+      <p class="about-bio">
+        Engineer and researcher working at the intersection of biomedical science and software.
+        I build tools that turn messy clinical data into insight — from ultrasound edge-detection
+        pipelines to ML-driven patient clustering — and ship the systems that make them usable.
+      </p>
+      <p class="about-bio">
+        Published first-author research at Mayo Clinic. Based in Rochester, MN.
+        Passionate about open-source science, interactive software, and things that last.
+      </p>
+      <hr class="rule">
+      <div class="about-links">
+        <a class="about-link" href="https://github.com/" target="_blank">github</a>
+        <a class="about-link" href="file:///C:/Users/bisho/Downloads/portfolio_1.html#" onclick="openWin(&#39;win-research&#39;); return false;">publications</a>
+        <a class="about-link" href="file:///C:/Users/bisho/Downloads/portfolio_1.html#" onclick="openWin(&#39;win-blog&#39;); return false;">blog</a>
+        <a class="about-link" href="file:///C:/Users/bisho/Downloads/portfolio_1.html#" onclick="openWin(&#39;win-contact&#39;); return false;">contact</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKILLS -->
+  <div class="win hidden" id="win-skills" style="z-index: 24; left: 721px; top: 56px;">
+    <div class="win-title" data-win="win-skills">
+      <span class="win-title-text">skills</span>
+      <button class="win-close" onclick="closeWin(&#39;win-skills&#39;)">[x]</button>
+    </div>
+    <div class="win-body">
+      <div style="margin-bottom:1.1rem">
+        <div class="group-label">languages</div>
+        <ul class="skill-list"><li>Python</li><li>JavaScript</li><li>TypeScript</li><li>C++</li><li>SQL</li><li>Bash</li></ul>
+      </div>
+      <hr class="rule">
+      <div style="margin-bottom:1.1rem">
+        <div class="group-label">frameworks &amp; tools</div>
+        <ul class="skill-list"><li>SvelteKit</li><li>Tailwind CSS</li><li>React</li><li>PyTorch</li><li>GitHub Actions</li><li>Docker</li><li>OpenAI API</li></ul>
+      </div>
+      <hr class="rule">
+      <div>
+        <div class="group-label">data science &amp; ml</div>
+        <ul class="skill-list"><li>UMAP</li><li>HDBSCAN</li><li>GroundingDINO</li><li>LLaVA</li><li>Llama</li><li>scikit-learn</li><li>OpenCV</li></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROJECTS -->
+  <div class="win hidden" id="win-projects" style="z-index: 32; left: 219px; top: 37px;">
+    <div class="win-title" data-win="win-projects">
+      <span class="win-title-text">projects</span>
+      <button class="win-close" onclick="closeWin(&#39;win-projects&#39;)">[x]</button>
+    </div>
+    <div class="win-body">
+      <div class="project-entry">
+        <div class="project-name">BWave.US — FMD Assessment Tool</div>
+        <div class="project-stack">Python · OpenCV · Signal Processing · open-source</div>
+        <div class="project-desc">Open-source brachial ultrasound edge-detection pipeline for flow mediated dilation assessment. Improved automated vessel wall detection with novel edge algorithms. In review at medRxiv.</div>
+      </div>
+      <div class="project-entry">
+        <div class="project-name">Scene Graph Generation Pipeline</div>
+        <div class="project-stack">GroundingDINO · LLaVA · Llama · Python</div>
+        <div class="project-desc">Automated visual-to-relational dataset pipeline integrating object detection and vision-language models to generate structured relationship triples. Improved precision by 46.9%.</div>
+      </div>
+      <div class="project-entry">
+        <div class="project-name">Clinical Clustering — Autonomic Dysfunction</div>
+        <div class="project-stack">UMAP · HDBSCAN · KMeans · Python</div>
+        <div class="project-desc">UMAP + clustering pipeline on high-dimensional SCI clinical data. Identified SCI-dominant patient clusters correlated with autonomic dysfunction severity.</div>
+      </div>
+      <div class="project-entry">
+        <div class="project-name">Technical Portfolio &amp; Engineering Blog</div>
+        <div class="project-stack">SvelteKit · Tailwind CSS · GitHub Actions · SSG</div>
+        <div class="project-desc">High-performance personal site with CI/CD, dynamic Markdown routing, and Static Site Generation. Automated deployment to GitHub Pages.</div>
+      </div>
+      <div class="project-entry">
+        <div class="project-name">Embedded AI Chatbot</div>
+        <div class="project-stack">Python · OpenAI API · Raspberry Pi · TTS</div>
+        <div class="project-desc">Interactive physical chatbot on embedded hardware. OpenAI API integration generating real-time audio responses.</div>
+      </div>
+      <div class="placeholder">more to come — ask me about my work</div>
+    </div>
+  </div>
+
+  <!-- RESEARCH -->
+  <div class="win hidden" id="win-research" style="z-index: 21; left: 759px; top: 196px;">
+    <div class="win-title" data-win="win-research">
+      <span class="win-title-text">research</span>
+      <button class="win-close" onclick="closeWin(&#39;win-research&#39;)">[x]</button>
+    </div>
+    <div class="win-body">
+      <div class="pub-entry">
+        <div class="pub-title">Increased symptomatic autonomic dysfunction is associated with greater cardiovascular endothelial dysfunction following spinal cord injury</div>
+        <div class="pub-venue">PM&amp;R · 2025 · DOI: 10.1002/pmrj.70069</div>
+        <div class="pub-authors">Pramanik B, Fernandez KA, Seidel-Miller K, Park A, Solinsky R</div>
+      </div>
+      <div class="pub-entry">
+        <div class="pub-title">A translational open-source flow mediated dilation assessment tool with improved automated edge detection</div>
+        <div class="pub-venue">medRxiv · 2025 · In review · DOI: 10.1101/2025.03.18.25324231</div>
+        <div class="pub-authors">Pramanik B, Veith D, Fernandez KA, Asp AJ, Solinsky R</div>
+      </div>
+      <hr class="rule">
+      <div class="group-label" style="margin-bottom:0.5rem">research areas</div>
+      <ul class="skill-list"><li>Spinal Cord Injury</li><li>Autonomic Dysfunction</li><li>Flow Mediated Dilation</li><li>Vascular Endothelium</li><li>Biomedical Signal Processing</li><li>Computer Vision</li></ul>
+    </div>
+  </div>
+
+  <!-- BLOG -->
+  <div class="win hidden" id="win-blog">
+    <div class="win-title" data-win="win-blog">
+      <span class="win-title-text">blog</span>
+      <button class="win-close" onclick="closeWin(&#39;win-blog&#39;)">[x]</button>
+    </div>
+    <div class="win-body">
+      <div class="blog-h1">posts</div>
+
+      <div class="post-entry">
+        <h2><a href="file:///C:/Users/bisho/Downloads/portfolio_1.html#">Building an open-source FMD tool: lessons from clinical research software</a></h2>
+        <div class="post-desc">On the gap between what researchers need and what software provides.</div>
+        <div class="post-meta">coming soon</div>
+      </div>
+      <hr>
+      <div class="post-entry">
+        <h2><a href="file:///C:/Users/bisho/Downloads/portfolio_1.html#">UMAP + clustering for clinical data: what works, what doesn't</a></h2>
+        <div class="post-desc">Exploring manifold methods on small, high-dimensional biomedical datasets.</div>
+        <div class="post-meta">coming soon</div>
+      </div>
+      <hr>
+      <div class="post-entry">
+        <h2><a href="file:///C:/Users/bisho/Downloads/portfolio_1.html#">SvelteKit SSG as a portfolio engine</a></h2>
+        <div class="post-desc">Why I chose static generation and what I'd do differently.</div>
+        <div class="post-meta">coming soon</div>
+      </div>
+      <hr>
+      <div class="post-entry">
+        <h2><a href="file:///C:/Users/bisho/Downloads/portfolio_1.html#">Running LLMs on embedded hardware</a></h2>
+        <div class="post-desc">Constraints, tradeoffs, and things that surprised me.</div>
+        <div class="post-meta">coming soon</div>
+      </div>
+      <hr>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="win hidden" id="win-contact">
+    <div class="win-title" data-win="win-contact">
+      <span class="win-title-text">contact</span>
+      <button class="win-close" onclick="closeWin(&#39;win-contact&#39;)">[x]</button>
+    </div>
+    <div class="win-body">
+      <div class="contact-row">
+        <span class="contact-label">email</span>
+        <a class="contact-val" href="mailto:you@example.com">[ your email ]</a>
+      </div>
+      <div class="contact-row">
+        <span class="contact-label">github</span>
+        <a class="contact-val" href="https://github.com/" target="_blank">github.com/[ handle ]</a>
+      </div>
+      <div class="contact-row">
+        <span class="contact-label">linkedin</span>
+        <a class="contact-val" href="file:///C:/Users/bisho/Downloads/portfolio_1.html#" target="_blank">linkedin.com/in/[ handle ]</a>
+      </div>
+      <div class="contact-row">
+        <span class="contact-label">site</span>
+        <a class="contact-val" href="file:///C:/Users/bisho/Downloads/portfolio_1.html#" target="_blank">[ your blog URL ]</a>
+      </div>
+      <div class="contact-row">
+        <span class="contact-label">location</span>
+        <span class="contact-val">Rochester, MN</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /desktop -->
+
+<!-- taskbar: white bar, italic serif, hover inverts -->
+<div class="taskbar">
+  <button class="taskbar-item" id="tb-about" onclick="toggleWin(&#39;win-about&#39;)">about</button>
+  <button class="taskbar-item" id="tb-skills" onclick="toggleWin(&#39;win-skills&#39;)">skills</button>
+  <button class="taskbar-item" id="tb-projects" onclick="toggleWin(&#39;win-projects&#39;)">projects</button>
+  <button class="taskbar-item" id="tb-research" onclick="toggleWin(&#39;win-research&#39;)">research</button>
+  <button class="taskbar-item" id="tb-blog" onclick="toggleWin(&#39;win-blog&#39;)">blog</button>
+  <button class="taskbar-item" id="tb-contact" onclick="toggleWin(&#39;win-contact&#39;)">contact</button>
+  <span class="taskbar-clock" id="clock">10:29 PM</span>
+</div>
+
+<script>
+  let zTop = 10;
+  const wins = {};
+
+  function initWin(id) {
+    const el = document.getElementById(id);
+    const tb = el.querySelector('.win-title');
+    let ox, oy, dragging = false;
+
+    tb.addEventListener('mousedown', e => {
+      if (e.target.classList.contains('win-close')) return;
+      dragging = true;
+      ox = e.clientX - el.offsetLeft;
+      oy = e.clientY - el.offsetTop;
+      focusWin(id);
+      e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', e => {
+      if (!dragging) return;
+      let nx = Math.max(0, Math.min(e.clientX - ox, window.innerWidth - el.offsetWidth));
+      let ny = Math.max(0, Math.min(e.clientY - oy, window.innerHeight - el.offsetHeight - 34));
+      el.style.left = nx + 'px';
+      el.style.top  = ny + 'px';
+    });
+
+    document.addEventListener('mouseup', () => { dragging = false; });
+    el.addEventListener('mousedown', () => focusWin(id));
+    wins[id] = el;
+  }
+
+  function focusWin(id) {
+    const el = wins[id];
+    if (el) el.style.zIndex = ++zTop;
+  }
+
+  function openWin(id) {
+    const el = document.getElementById(id);
+    el.classList.remove('hidden');
+    focusWin(id);
+    const tb = document.getElementById('tb-' + id.replace('win-', ''));
+    if (tb) tb.classList.add('open');
+  }
+
+  function closeWin(id) {
+    document.getElementById(id).classList.add('hidden');
+    const tb = document.getElementById('tb-' + id.replace('win-', ''));
+    if (tb) tb.classList.remove('open');
+  }
+
+  function toggleWin(id) {
+    document.getElementById(id).classList.contains('hidden') ? openWin(id) : closeWin(id);
+  }
+
+  ['win-about','win-skills','win-projects','win-research','win-blog','win-contact'].forEach(initWin);
+
+  function tick() {
+    document.getElementById('clock').textContent =
+      new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  tick(); setInterval(tick, 1000);
+</script>
+
+
+</body></html>
