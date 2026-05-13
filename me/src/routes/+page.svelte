@@ -307,7 +307,7 @@
 			</div>
 			<div class="contact-row">
 				<span class="contact-label">location</span>
-				<span class="contact-val">Rochester, MN</span>
+				<span class="contact-val">Tampa, FL</span>
 			</div>
 		</div>
 	</div>
