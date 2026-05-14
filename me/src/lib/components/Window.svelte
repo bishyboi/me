@@ -1,23 +1,27 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { WinId } from '$lib/types';
 
 	interface Props {
-		id: WinId;
+		id: string;
+		title?: string;
 		open: boolean;
 		z: number;
 		x: number;
 		y: number;
 		width: number;
 		isMobile: boolean;
+		fixed?: boolean;
+		maximized?: boolean;
 		onClose: () => void;
 		onFocus: () => void;
 		onMove: (x: number, y: number) => void;
 		onContextMenu?: (e: MouseEvent) => void;
+		onMaximize?: () => void;
+		onMinimize?: () => void;
 		children: Snippet;
 	}
 
-	let { id, open, z, x, y, width, isMobile, onClose, onFocus, onMove, onContextMenu, children }: Props = $props();
+	let { id, title, open, z, x, y, width, isMobile, fixed = false, maximized = false, onClose, onFocus, onMove, onContextMenu, onMaximize, onMinimize, children }: Props = $props();
 
 	function draggable(node: HTMLElement) {
 		const titlebar = node.querySelector('.win-title') as HTMLElement;
@@ -26,8 +30,11 @@
 		let ox = 0, oy = 0, dragging = false;
 
 		function onMousedown(e: MouseEvent) {
-			if ((e.target as HTMLElement).classList.contains('win-close')) return;
+			const target = e.target as HTMLElement;
+			if (target.classList.contains('win-close')) return;
+			if (target.classList.contains('win-btn')) return;
 			if (isMobile) return;
+			if (maximized) return;
 			dragging = true;
 			ox = e.clientX - x;
 			oy = e.clientY - y;
@@ -67,13 +74,23 @@
 <div
 	class="win"
 	class:hidden={!open}
-	style="width:{width}px; left:{x}px; top:{y}px; z-index:{z}"
+	class:maximized={maximized}
+	style={maximized
+		? `z-index: 8500;`
+		: `${fixed ? 'position: fixed;' : ''}width:${width}px; left:${x}px; top:${y}px; z-index:${z};`}
 	use:draggable
 	oncontextmenu={onContextMenu}
 >
 	<div class="win-title" data-win={id}>
-		<span class="win-title-text">{id}</span>
-		<button class="win-close" onclick={onClose}>×</button>
+		<span class="win-title-text">{title ?? id}</span>
+		<div class="win-controls">
+			{#if maximized && onMinimize}
+				<button class="win-btn win-minimize" onclick={onMinimize} title="Minimize">–</button>
+			{:else if !maximized && onMaximize}
+				<button class="win-btn win-maximize" onclick={onMaximize} title="Maximize">□</button>
+			{/if}
+			<button class="win-close" onclick={onClose}>×</button>
+		</div>
 	</div>
 	<div class="win-body">
 		{@render children()}
@@ -101,6 +118,21 @@
 		transform: scale(0.98);
 	}
 
+	.win.maximized {
+		position: fixed;
+		left: 4vw;
+		top: 20px;
+		right: 4vw;
+		bottom: 56px;
+		width: auto;
+		max-width: none;
+	}
+
+	.win.maximized .win-body {
+		max-height: none;
+		flex: 1;
+	}
+
 	.win-title {
 		display: flex;
 		align-items: center;
@@ -112,8 +144,16 @@
 		flex-shrink: 0;
 	}
 
+	.win.maximized .win-title {
+		cursor: default;
+	}
+
 	.win-title:active {
 		cursor: grabbing;
+	}
+
+	.win.maximized .win-title:active {
+		cursor: default;
 	}
 
 	.win-title-text {
@@ -122,6 +162,32 @@
 		font-style: italic;
 		color: var(--ink);
 		line-height: 1.1;
+	}
+
+	.win-controls {
+		display: flex;
+		gap: 4px;
+		align-items: center;
+	}
+
+	.win-btn {
+		font-family: var(--mono);
+		font-size: 11px;
+		letter-spacing: 0.08em;
+		color: var(--ink-dim);
+		background: none;
+		border: 1px solid var(--border);
+		border-radius: 2px;
+		cursor: pointer;
+		transition: all 0.1s;
+		padding: 2px 5px;
+		line-height: 1.4;
+	}
+
+	.win-btn:hover {
+		background: var(--ink);
+		color: var(--paper);
+		border-color: var(--ink);
 	}
 
 	.win-close {

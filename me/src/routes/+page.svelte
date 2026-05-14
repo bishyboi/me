@@ -27,7 +27,7 @@
 	const showSkillsAt  = defaultPositions.skills.x  + defaultPositions.skills.w  + 20; // ~1060
 	const showContactAt = defaultPositions.contact.x + defaultPositions.contact.w + 20; // ~1385
 
-	let zTop = $state(13);
+	let zTop = $state(100);
 	let isMobile = $state(false);
 	let clock = $state('');
 	let searchOpen = $state(false);
@@ -82,25 +82,37 @@
 
 	function ctxSearch() { hideCtx(); openSearch(); }
 
-	let projectWins = $state<Record<string, { open: boolean; z: number; x: number; y: number; projectId: string }>>({});
+	let projectWins = $state<Record<string, { open: boolean; z: number; x: number; y: number; projectId: string; maximized: boolean }>>({});
 
 	function openProjectWin(id: string) {
 		if (projectWins[id]) {
 			projectWins[id].open = true;
 			projectWins[id].z = ++zTop;
+			projectWins[id].maximized = true;
 		} else {
 			projectWins[id] = {
 				open: true,
 				z: ++zTop,
 				x: defaultPositions.projects.x + 40,
 				y: defaultPositions.projects.y + 40,
-				projectId: id
+				projectId: id,
+				maximized: true
 			};
 		}
 	}
 	function closeProjectWin(id: string) { projectWins[id].open = false; }
 	function focusProjectWin(id: string) { projectWins[id].z = ++zTop; }
 	function moveProjectWin(id: string, x: number, y: number) { projectWins[id].x = x; projectWins[id].y = y; }
+	function maximizeProjectWin(id: string) { projectWins[id].maximized = true; projectWins[id].z = ++zTop; }
+	function minimizeProjectWin(id: string) { projectWins[id].maximized = false; }
+
+	let anyProjectMaximized = $derived(Object.values(projectWins).some(pw => pw.open && pw.maximized));
+
+	function minimizeAllMaximized() {
+		Object.keys(projectWins).forEach(id => {
+			if (projectWins[id].open && projectWins[id].maximized) projectWins[id].maximized = false;
+		});
+	}
 
 	function openState(): Record<WinId, boolean> {
 		return Object.fromEntries(winOrder.map(id => [id, wins[id].open])) as Record<WinId, boolean>;
@@ -248,29 +260,39 @@
 		<ContactWindow />
 	</Window>
 
-	{#each Object.values(projectWins) as pw (pw.projectId)}
-		{#if pw.open}
-			{@const project = projects.find(p => p.id === pw.projectId)}
-			{#if project}
-				<Window
-					id={`project-${pw.projectId}`}
-					open={pw.open}
-					z={pw.z}
-					x={pw.x}
-					y={pw.y}
-					width={580}
-					{isMobile}
-					onClose={() => closeProjectWin(pw.projectId)}
-					onFocus={() => focusProjectWin(pw.projectId)}
-					onMove={(x, y) => moveProjectWin(pw.projectId, x, y)}
-					onContextMenu={(e) => showWinCtx(e, pw.projectId)}
-				>
-					<ProjectDetailWindow {project} />
-				</Window>
-			{/if}
-		{/if}
-	{/each}
 </div>
+
+{#if anyProjectMaximized}
+	<div class="project-backdrop" onclick={minimizeAllMaximized}></div>
+{/if}
+
+{#each Object.values(projectWins) as pw (pw.projectId)}
+	{#if pw.open}
+		{@const project = projects.find(p => p.id === pw.projectId)}
+		{#if project}
+			<Window
+				id={`project-${pw.projectId}`}
+				title={project.name}
+				open={pw.open}
+				z={pw.z}
+				x={pw.x}
+				y={pw.y}
+				width={580}
+				{isMobile}
+				fixed={true}
+				maximized={pw.maximized}
+				onClose={() => closeProjectWin(pw.projectId)}
+				onFocus={() => focusProjectWin(pw.projectId)}
+				onMove={(x, y) => moveProjectWin(pw.projectId, x, y)}
+				onContextMenu={(e) => showWinCtx(e, pw.projectId)}
+				onMaximize={() => maximizeProjectWin(pw.projectId)}
+				onMinimize={() => minimizeProjectWin(pw.projectId)}
+			>
+				<ProjectDetailWindow {project} />
+			</Window>
+		{/if}
+	{/if}
+{/each}
 
 {#if ctxMenu.visible}
 	<div
@@ -305,6 +327,13 @@
 		height: 100vh;
 		z-index: 20;
 		pointer-events: none;
+	}
+
+	.project-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 8000;
+		background: rgba(0, 0, 0, 0.2);
 	}
 
 	.ctx-menu {
