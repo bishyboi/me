@@ -16,12 +16,16 @@
 	const winOrder: WinId[] = ['about', 'skills', 'projects', 'publications', 'contact'];
 
 	const defaultPositions: Record<WinId, { x: number; y: number; w: number }> = {
-		about:        { x: 140, y: 48,  w: 480 },
-		skills:       { x: 660, y: 60,  w: 360 },
+		about:        { x: 175, y: 50,  w: 480 },
+		skills:       { x: 680, y: 70,  w: 360 },
 		projects:     { x: 200, y: 44,  w: 520 },
 		publications: { x: 700, y: 180, w: 480 },
-		contact:      { x: 720, y: 180, w: 300 }
+		contact:      { x: 1065, y: 90, w: 300 }
 	};
+
+	// Minimum viewport widths to show each cascaded window on load
+	const showSkillsAt  = defaultPositions.skills.x  + defaultPositions.skills.w  + 20; // ~1060
+	const showContactAt = defaultPositions.contact.x + defaultPositions.contact.w + 20; // ~1385
 
 	let zTop = $state(13);
 	let isMobile = $state(false);
@@ -29,11 +33,11 @@
 	let searchOpen = $state(false);
 
 	let wins = $state<Record<WinId, WinState>>({
-		about:        { open: true,  z: 12, x: defaultPositions.about.x,        y: defaultPositions.about.y        },
-		skills:       { open: true,  z: 11, x: defaultPositions.skills.x,       y: defaultPositions.skills.y       },
+		about:        { open: false, z: 13, x: defaultPositions.about.x,        y: defaultPositions.about.y        },
+		skills:       { open: false, z: 12, x: defaultPositions.skills.x,       y: defaultPositions.skills.y       },
 		projects:     { open: false, z: 10, x: defaultPositions.projects.x,     y: defaultPositions.projects.y     },
 		publications: { open: false, z: 10, x: defaultPositions.publications.x, y: defaultPositions.publications.y },
-		contact:      { open: true,  z: 13, x: defaultPositions.contact.x,      y: defaultPositions.contact.y      }
+		contact:      { open: false, z: 11, x: defaultPositions.contact.x,      y: defaultPositions.contact.y      }
 	});
 
 	function focusWin(id: WinId) { wins[id].z = ++zTop; }
@@ -123,7 +127,14 @@
 
 		const mq = window.matchMedia('(max-width: 768px)');
 		isMobile = mq.matches;
-		if (isMobile) winOrder.forEach(id => { wins[id].open = true; });
+		if (isMobile) {
+			winOrder.forEach(id => { wins[id].open = true; });
+		} else {
+			const vw = window.innerWidth;
+			wins.about.open = true;
+			if (vw >= showSkillsAt)  wins.skills.open  = true;
+			if (vw >= showContactAt) wins.contact.open = true;
+		}
 
 		const onChange = (e: MediaQueryListEvent) => {
 			isMobile = e.matches;
@@ -330,16 +341,16 @@
 
 	.search-btn {
 		position: fixed;
-		top: 14px;
+		top: 12px;
 		right: 18px;
 		z-index: 10;
-		background: none;
-		border: 1px solid var(--border);
+		background: var(--ink-muted);
+		border: 1px solid var(--ink-muted);
 		border-radius: 2px;
-		color: var(--ink-dim);
-		font-size: 18px;
+		color: var(--paper);
+		font-size: 22px;
 		line-height: 1;
-		padding: 3px 7px 5px;
+		padding: 3px 8px 5px;
 		cursor: pointer;
 		transition: all 0.1s;
 	}

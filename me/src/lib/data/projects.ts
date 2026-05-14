@@ -122,7 +122,7 @@ The pipeline: group-wise median imputation and z-score normalization → UMAP di
 		stack: 'Python · K-means clustering · pandas · survey data processing',
 		desc: 'Modified K-means clustering model to optimize student team assignments in UF engineering courses. Increased classroom satisfaction by 30%.',
 		category: 'Data Science / Software',
-		status: 'In Progress',
+		status: 'Completed',
 		date: 'August 2023 – Present',
 		longDesc: `Developed a modified K-means clustering model to optimize student team assignments in UF engineering courses using survey response data. The system ingests student survey data, cleans and processes it automatically, and outputs team groupings designed to maximize diversity and satisfaction. Also conducted statistical analysis on factors influencing student confidence and retention in engineering programs.`,
 		outcomes: [
